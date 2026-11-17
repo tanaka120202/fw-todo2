@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
 
 @Controller
@@ -113,6 +115,16 @@ public class HomeController {
     public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         todoService.delete(id);
         redirectAttributes.addFlashAttribute("message", "削除しました");
+        return "redirect:/todos";
+    }
+
+    @PostMapping("/todos/delete")
+    public String deleteSelected(@RequestParam(name = "ids", required = false) List<Long> ids,
+                                 RedirectAttributes redirectAttributes) {
+        if (ids != null && !ids.isEmpty()) {
+            todoService.deleteByIds(ids);
+            redirectAttributes.addFlashAttribute("message", "選択した項目を削除しました");
+        }
         return "redirect:/todos";
     }
 }

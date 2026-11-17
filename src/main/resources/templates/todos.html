@@ -31,9 +31,12 @@
         </form>
         <a class="btn" href="/todos/new" th:href="@{/todos/new}">新規登録</a>
         <p th:if="${#lists.isEmpty(todos)}">まだ1件も登録されていません</p>
+        <form action="/todos/delete" th:action="@{/todos/delete}" method="post" onsubmit="return confirmSelectedDeletion();">
+        <button class="btn" type="submit">選択した項目を削除</button>
         <table class="todo-table" th:unless="${#lists.isEmpty(todos)}">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="select-all" aria-label="全選択"></th>
                     <th>やること</th>
                     <th>ジャンル</th>
                     <th>優先度</th>
@@ -44,6 +47,7 @@
             </thead>
             <tbody>
                 <tr th:each="todo : ${todos}">
+                    <td><input type="checkbox" name="ids" th:value="${todo.id}" class="todo-checkbox" aria-label="この項目を選択"></td>
                     <td th:text="${todo.title}">やること</td>
                     <td th:text="${todo.category}">ジャンル</td>
                     <td th:text="${todo.priority == 1 ? '高' : (todo.priority == 2 ? '中' : '低')}">中</td>
@@ -53,6 +57,36 @@
                 </tr>
             </tbody>
         </table>
+        </form>
+        <script>
+            const selectAll = document.getElementById('select-all');
+            const todoCheckboxes = document.querySelectorAll('.todo-checkbox');
+
+            if (selectAll) {
+                selectAll.addEventListener('change', () => {
+                    todoCheckboxes.forEach((checkbox) => {
+                        checkbox.checked = selectAll.checked;
+                    });
+                });
+            }
+
+            todoCheckboxes.forEach((checkbox) => {
+                checkbox.addEventListener('change', () => {
+                    if (selectAll) {
+                        selectAll.checked = Array.from(todoCheckboxes).every((item) => item.checked);
+                    }
+                });
+            });
+
+            function confirmSelectedDeletion() {
+                const selectedCount = Array.from(todoCheckboxes).filter((checkbox) => checkbox.checked).length;
+                if (selectedCount === 0) {
+                    alert('削除する項目を選択してください');
+                    return false;
+                }
+                return confirm('選択した項目を削除しますか？');
+            }
+        </script>
     </main>
 </body>
 </html>

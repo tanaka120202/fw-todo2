@@ -40,4 +40,8 @@ public class TodoService {
         log.info("削除: id={}", id);
         return result;
     }
+
+    public int deleteByIds(List<Long> ids) {
+        return todoMapper.deleteByIds(ids);
+    }
 }
