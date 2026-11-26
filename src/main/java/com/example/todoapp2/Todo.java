@@ -14,14 +14,14 @@ import lombok.Data;
 @Data
 public class Todo {
     private Long id;
-    @NotBlank(message = "やることを入力してください")
-    @Size(max = 255, message = "やることは255文字以内で入力してください")
+    @NotBlank(message = "{validation.title.required}")
+    @Size(max = 255, message = "{validation.title.size}")
     private String title;
-    @Size(max = 255, message = "メモは255文字以内で入力してください")
+    @Size(max = 255, message = "{validation.detail.size}")
     private String detail;
-    @NotBlank(message = "ジャンルを選んでください")
+    @NotBlank(message = "{validation.category.required}")
     private String category;
-    @NotNull(message = "優先度を選んでください")
+    @NotNull(message = "{validation.priority.required}")
     private Integer priority;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;

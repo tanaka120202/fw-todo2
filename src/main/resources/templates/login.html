@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{auth.login}">ログイン</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <nav th:replace="~{language :: menu}"></nav>
+    <h1 class="page-title" th:text="#{auth.login}">ログイン</h1>
+    <p th:if="${param.error}" role="alert" th:text="#{auth.invalid}"></p>
+    <p th:if="${param.logout}" role="status" th:text="#{auth.signedout}"></p>
+    <form th:action="@{/login}" method="post">
+        <label class="form-label" for="username" th:text="#{user.name}">ユーザー名</label>
+        <input class="form-input" id="username" name="username" autocomplete="username" required>
+        <label class="form-label" for="password" th:text="#{user.password}">パスワード</label>
+        <input class="form-input" type="password" id="password" name="password" autocomplete="current-password" required>
+        <button class="btn" type="submit" th:text="#{auth.login}">ログイン</button>
+    </form>
+</main>
+</body>
+</html>

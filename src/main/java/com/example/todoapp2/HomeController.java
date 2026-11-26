@@ -1,5 +1,6 @@
 package com.example.todoapp2;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,21 +24,26 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("title", "やること管理");
+    public String index() {
         return "index";
+    }
+
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
 
     @GetMapping("/todos")
     public String todos(@RequestParam(name = "keyword", defaultValue = "") String keyword,
                         @RequestParam(name = "category", defaultValue = "") String category,
                         @RequestParam(name = "order", defaultValue = "asc") String order,
-                        Model model) {
+                        Model model, @AuthenticationPrincipal AccountPrincipal account) {
         String sortOrder = "desc".equals(order) ? "desc" : "asc";
         model.addAttribute("todos", todoService.search(keyword, category, sortOrder));
         model.addAttribute("keyword", keyword);
         model.addAttribute("category", category);
         model.addAttribute("order", sortOrder);
+        model.addAttribute("admin", account.isAdmin());
         return "todos";
     }
 
@@ -62,16 +68,15 @@ public class HomeController {
     @PostMapping("/todos")
     public String store(@ModelAttribute("todo") Todo todo, RedirectAttributes redirectAttributes) {
         todoService.create(todo);
-        redirectAttributes.addFlashAttribute("message", "登録しました");
+        redirectAttributes.addFlashAttribute("message", "todo.created");
         return "redirect:/todos";
     }
 
     @GetMapping("/todos/{id}/edit")
-    public String edit(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String edit(@PathVariable("id") Long id, Model model) {
         Todo todo = todoService.findById(id);
         if (todo == null) {
-            redirectAttributes.addFlashAttribute("message", "見つかりませんでした");
-            return "redirect:/todos";
+            throw new TodoNotFoundException();
         }
         model.addAttribute("todo", todo);
         return "edit";
@@ -95,17 +100,19 @@ public class HomeController {
     @PostMapping("/todos/{id}")
     public String update(@PathVariable("id") Long id, @ModelAttribute("todo") Todo todo, RedirectAttributes redirectAttributes) {
         todo.setId(id);
-        todoService.update(todo);
-        redirectAttributes.addFlashAttribute("message", "保存しました");
+        int updated = todoService.update(todo);
+        if (updated == 0) {
+            throw new TodoNotFoundException();
+        }
+        redirectAttributes.addFlashAttribute("message", "todo.updated");
         return "redirect:/todos";
     }
 
     @GetMapping("/todos/{id}/delete")
-    public String confirmDelete(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String confirmDelete(@PathVariable("id") Long id, Model model) {
         Todo todo = todoService.findById(id);
         if (todo == null) {
-            redirectAttributes.addFlashAttribute("message", "見つかりませんでした");
-            return "redirect:/todos";
+            throw new TodoNotFoundException();
         }
         model.addAttribute("todo", todo);
         return "delete";
@@ -113,8 +120,11 @@ public class HomeController {
 
     @PostMapping("/todos/{id}/delete")
     public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
-        todoService.delete(id);
-        redirectAttributes.addFlashAttribute("message", "削除しました");
+        int deleted = todoService.delete(id);
+        if (deleted == 0) {
+            throw new TodoNotFoundException();
+        }
+        redirectAttributes.addFlashAttribute("message", "todo.deleted");
         return "redirect:/todos";
     }
 
@@ -123,7 +133,7 @@ public class HomeController {
                                  RedirectAttributes redirectAttributes) {
         if (ids != null && !ids.isEmpty()) {
             todoService.deleteByIds(ids);
-            redirectAttributes.addFlashAttribute("message", "選択した項目を削除しました");
+            redirectAttributes.addFlashAttribute("message", "todo.bulk.deleted");
         }
         return "redirect:/todos";
     }

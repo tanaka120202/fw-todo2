@@ -1,0 +1,111 @@
+### 1. 1件登録する
+POST http://localhost:8080/api/todos
+Content-Type: application/json
+
+{
+  "title": "競合サイトを3つ調べる",
+  "category": "マーケティング",
+  "priority": 2,
+  "dueDate": "2026-12-01"
+}
+
+### 2. 1件取得する
+GET http://localhost:8080/api/todos/1
+
+### 3. 1件更新する
+PUT http://localhost:8080/api/todos/1
+Content-Type: application/json
+
+{
+  "title": "競合サイトを5つ調べる",
+  "detail": null,
+  "category": "マーケティング",
+  "priority": 2,
+  "dueDate": "2026-12-01",
+  "completed": false
+}
+
+### 4. 1件削除する
+DELETE http://localhost:8080/api/todos/1
+
+### 5. 祝日を直接取ってくる
+GET https://holidays-jp.github.io/api/v1/date.json
+
+### 6. 自分のアプリの祝日API
+GET http://localhost:8080/api/holidays
+
+### 7. 窓口と会話を始める
+POST http://localhost:8080/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": { "name": "requests.http", "version": "1.0" }
+  }
+}
+
+### 8. 道具の一覧をもらう
+POST http://localhost:8080/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: fe4bd8e0-7486-4813-b1e9-bb4f55a1dfd7
+
+{ "jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {} }
+
+### 9. 道具を1つ呼んでみる
+POST http://localhost:8080/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: fe4bd8e0-7486-4813-b1e9-bb4f55a1dfd7
+
+{ "jsonrpc": "2.0", "id": 3, "method": "tools/call",
+  "params": { "name": "list_todos", "arguments": {} } }
+
+### /api/todo の例。パスワードはローカルの REST Client 環境変数 TODO_API_PASSWORD に設定する。
+# 許可する接続元は TODO_API_ALLOWED_ORIGINS にカンマ区切りで設定する。
+# 既定では localhost と 127.0.0.1 のポート 3000、5173 を許可する。
+@todoApiUrl = http://127.0.0.1:8100/api/todo
+@todoApiUser = admin
+
+### 一覧を取得する
+GET {{todoApiUrl}}
+Authorization: Basic {{todoApiUser}} {{$dotenv TODO_API_PASSWORD}}
+
+### ToDoを登録する
+# @name createTodo
+POST {{todoApiUrl}}
+Authorization: Basic {{todoApiUser}} {{$dotenv TODO_API_PASSWORD}}
+Content-Type: application/json
+
+{
+  "title": "REST APIの動作確認",
+  "category": "プログラミング",
+  "priority": 2,
+  "completed": false
+}
+
+### 直前に登録したToDoを取得する
+GET {{todoApiUrl}}/{{createTodo.response.body.$.data.id}}
+Authorization: Basic {{todoApiUser}} {{$dotenv TODO_API_PASSWORD}}
+
+### 直前に登録したToDoを更新する
+PUT {{todoApiUrl}}/{{createTodo.response.body.$.data.id}}
+Authorization: Basic {{todoApiUser}} {{$dotenv TODO_API_PASSWORD}}
+Content-Type: application/json
+
+{
+  "title": "REST APIの動作確認",
+  "category": "プログラミング",
+  "priority": 2,
+  "completed": true
+}
+
+### 直前に登録したToDoを削除する
+DELETE {{todoApiUrl}}/{{createTodo.response.body.$.data.id}}
+Authorization: Basic {{todoApiUser}} {{$dotenv TODO_API_PASSWORD}}

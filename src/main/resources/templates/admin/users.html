@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{user.management}">ユーザー管理</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1 class="page-title" th:text="#{user.management}">ユーザー管理</h1>
+    <p th:if="${error}" th:text="#{${error}}" role="alert"></p>
+    <p class="flash" th:if="${message}" th:text="#{${message}}" role="status"></p>
+    <a class="link" th:href="@{/todos}" th:text="#{todo.list.link}">ToDo一覧へ</a>
+    <h2 th:text="#{user.new}">新規ユーザー登録</h2>
+    <form th:action="@{/admin/users}" method="post">
+        <label class="form-label" for="username" th:text="#{user.name}">ユーザー名</label>
+        <input class="form-input" id="username" name="username" th:value="${username}" required maxlength="64" autocomplete="off">
+        <label class="form-label" for="password" th:text="#{user.password}">パスワード</label>
+        <input class="form-input" id="password" name="password" type="password" required autocomplete="new-password">
+        <button class="btn" type="submit" th:text="#{action.register}">登録する</button>
+    </form>
+    <h2 th:text="#{user.list}">ユーザー一覧</h2>
+    <table class="todo-table">
+        <thead>
+        <tr><th th:text="#{user.name}">ユーザー名</th><th th:text="#{user.role}">ロール</th><th th:text="#{todo.status}">状態</th><th th:text="#{action.actions}">操作</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.role}"></td>
+            <td th:text="${user.enabled ? #messages.msg('user.enabled') : #messages.msg('user.disabled')}"></td>
+            <td>
+                <a class="link" th:href="@{/admin/users/{id}/edit(id=${user.id})}" th:text="#{todo.edit}">編集</a>
+                <form th:if="${user.id != actorId}" th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"
+                      th:attr="data-confirm=#{user.delete.confirm}" onsubmit="return confirm(this.dataset.confirm);">
+                    <button class="btn" type="submit" th:text="#{todo.delete}">削除</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

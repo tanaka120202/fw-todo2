@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{attachment.title}">添付ファイル</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1 class="page-title" th:text="#{attachment.title}">添付ファイル</h1>
+    <p class="flash" th:if="${attachmentMessage}" th:text="#{${attachmentMessage}}" role="status"></p>
+    <form th:action="@{/todos/{id}/attachments(id=${todoId})}" method="post" enctype="multipart/form-data">
+        <label class="form-label" for="attachment-file" th:text="#{attachment.file}">添付するファイル（10MBまで）</label>
+        <input class="form-input" id="attachment-file" name="file" type="file" required>
+        <button class="btn" type="submit" th:text="#{attachment.upload}">添付する</button>
+    </form>
+    <p th:if="${attachments.isEmpty()}" th:text="#{attachment.empty}">添付ファイルはありません。</p>
+    <ul th:unless="${attachments.isEmpty()}">
+        <li th:each="item : ${attachments}">
+            <a class="link" th:href="@{/todos/{todoId}/attachments/{id}(todoId=${todoId},id=${item.id})}"
+               th:text="${item.originalName}"></a>
+            <form th:action="@{/todos/{todoId}/attachments/{id}/delete(todoId=${todoId},id=${item.id})}"
+                  method="post" th:attr="data-confirm=#{attachment.confirm}" onsubmit="return confirm(this.dataset.confirm);">
+                <button class="btn sub" type="submit" th:text="#{action.delete}">削除する</button>
+            </form>
+        </li>
+    </ul>
+    <a class="link" th:href="@{/todos/{id}/edit(id=${todoId})}" th:text="#{todo.edit.link}">ToDo編集へ戻る</a>
+</main>
+</body>
+</html>

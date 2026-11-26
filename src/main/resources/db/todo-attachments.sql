@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS todo_attachments (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    todo_id BIGINT NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    storage_name CHAR(36) NOT NULL UNIQUE,
+    size_bytes BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_todo_attachments_todo FOREIGN KEY (todo_id) REFERENCES todos(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

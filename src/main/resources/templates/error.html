@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{error.title(${status.toString()})}">エラー</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1 class="page-title" th:text="#{error.title(${status.toString()})}">エラー</h1>
+    <p th:text="${errorMessage ?: (status == 404 ? #messages.msg('error.notFound') : #messages.msg('error.server'))}">エラーが発生しました</p>
+    <a class="link" th:href="@{/todos}" th:text="#{todo.list.link}">ToDo一覧へ</a>
+    <details th:if="${traceDetails != null}">
+        <summary th:text="#{error.trace}">スタックトレース</summary>
+        <pre th:text="${traceDetails}"></pre>
+    </details>
+</main>
+</body>
+</html>

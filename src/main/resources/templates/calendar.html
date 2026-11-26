@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{calendar.title}">カレンダー</title>
+    <link rel="stylesheet" href="/css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+    <main class="container">
+        <h1 id="calendar-month" class="page-title" th:text="#{calendar.month(${selected.year.toString()},${#locale.language == 'ja' ? selected.monthValue.toString() : #temporals.monthName(selected.atDay(1))})}">2026年4月</h1>
+        <p id="calendar-holidays-unavailable" hidden th:text="#{calendar.holidays.unavailable}">祝日を取れませんでした</p>
+        <nav class="calendar-nav" th:aria-label="#{calendar.controls}">
+            <div class="calendar-nav-group">
+                <a class="link" th:href="@{/calendar(year=${previous.year},month=${previous.monthValue})}" th:text="#{calendar.previous}">前の月</a>
+                <a class="link" th:href="@{/calendar(year=${next.year},month=${next.monthValue})}" th:text="#{calendar.next}">次の月</a>
+            </div>
+            <div class="calendar-nav-group calendar-nav-actions">
+                <a class="link" href="/todos" th:href="@{/todos}" th:text="#{calendar.table}">表で見る</a>
+                <a class="btn" href="/todos/new" th:href="@{/todos/new}" th:text="#{todo.new}">新規登録</a>
+            </div>
+        </nav>
+        <table class="calendar-grid" aria-labelledby="calendar-month" th:attr="data-from=${firstDay},data-to=${lastDay}">
+            <thead>
+                <tr>
+                    <th scope="col" th:text="#{day.sun}">日</th><th scope="col" th:text="#{day.mon}">月</th><th scope="col" th:text="#{day.tue}">火</th><th scope="col" th:text="#{day.wed}">水</th>
+                    <th scope="col" th:text="#{day.thu}">木</th><th scope="col" th:text="#{day.fri}">金</th><th scope="col" th:text="#{day.sat}">土</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="week : ${weeks}">
+                    <td th:each="date : ${week}" th:attr="data-date=${date}"
+                        th:text="${date == null ? '' : date.dayOfMonth}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <script th:inline="javascript">
+        const table = document.querySelector('.calendar-grid');
+        const { from, to } = table.dataset;
+        const params = new URLSearchParams({ from, to });
+
+        async function showCalendarTodos() {
+            const res = await fetch(`/api/todos?${params}`);
+            if (!res.ok) {
+                return;
+            }
+            const todos = await res.json();
+
+            const todosByDate = new Map();
+            for (const todo of todos) {
+                if (!todosByDate.has(todo.dueDate)) {
+                    todosByDate.set(todo.dueDate, []);
+                }
+                todosByDate.get(todo.dueDate).push(todo);
+            }
+
+            const todayParts = new Intl.DateTimeFormat('ja-JP', {
+                timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const { year, month, day } = Object.fromEntries(todayParts.map(({ type, value }) => [type, value]));
+            const today = `${year}-${month}-${day}`;
+            const displayLimit = 3;
+
+            for (const cell of table.querySelectorAll('td[data-date]')) {
+                const date = cell.dataset.date;
+                const dailyTodos = todosByDate.get(date) ?? [];
+                for (const todo of dailyTodos.slice(0, displayLimit)) {
+                    const title = document.createElement('a');
+                    title.className = 'calendar-todo-link';
+                    title.href = `/todos/${encodeURIComponent(todo.id)}/edit`;
+                    title.textContent = todo.title;
+                    if (date < today && todo.completed === false) {
+                        title.classList.add('calendar-overdue');
+                    }
+                    cell.append(title);
+                }
+                const remaining = dailyTodos.length - displayLimit;
+                if (remaining > 0) {
+                    const summary = document.createElement('div');
+                    const moreText = /*[[#{calendar.more('__COUNT__')}]]*/ '__COUNT__';
+                    summary.textContent = moreText.replace('__COUNT__', remaining);
+                    cell.append(summary);
+                }
+            }
+        }
+
+        async function colorCalendarDays() {
+            const cells = table.querySelectorAll('td[data-date]');
+            for (const cell of cells) {
+                const weekday = new Date(cell.dataset.date).getUTCDay();
+                if (weekday === 6) {
+                    cell.classList.add('calendar-saturday');
+                } else if (weekday === 0) {
+                    cell.classList.add('calendar-sunday');
+                }
+            }
+
+            const res = await fetch(`/api/holidays?${params}`);
+            if (res.headers.has('X-Holidays-Unavailable')) {
+                document.getElementById('calendar-holidays-unavailable').hidden = false;
+            }
+            if (!res.ok) {
+                return;
+            }
+            const holidays = await res.json();
+            for (const cell of cells) {
+                const date = cell.dataset.date;
+                if (Object.hasOwn(holidays, date)) {
+                    cell.classList.add('calendar-holiday');
+                    cell.title = holidays[date];
+                }
+            }
+        }
+
+        showCalendarTodos().catch(console.error);
+        colorCalendarDays().catch(console.error);
+    </script>
+</body>
+</html>

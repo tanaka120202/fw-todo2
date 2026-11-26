@@ -1,0 +1,4 @@
+<nav th:fragment="menu" th:aria-label="#{language}" xmlns:th="http://www.thymeleaf.org">
+    <a class="link" href="?lang=ja" lang="ja" hreflang="ja" th:aria-current="${#locale.language == 'ja' ? 'true' : null}">日本語</a>
+    <a class="link" href="?lang=en" lang="en" hreflang="en" th:aria-current="${#locale.language == 'en' ? 'true' : null}">English</a>
+</nav>

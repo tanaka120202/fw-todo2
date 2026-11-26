@@ -190,3 +190,28 @@ MySQLの自動更新日時は、値が実際に変わる更新を記録する方
 - [MySQL 8.0：CREATE TABLE](https://dev.mysql.com/doc/refman/8.0/en/create-table.html)
 - [MySQL 8.0：DATETIMEの自動初期化・更新](https://dev.mysql.com/doc/refman/8.0/en/timestamp-initialization.html)
 - [MySQL 8.0：数値型とBOOLEAN](https://dev.mysql.com/doc/refman/8.0/en/numeric-type-syntax.html)
+
+## ユーザー管理の導入
+
+1. MySQL の接続先を確認し、対象DBをバックアップします。既定の接続先は Docker Compose の MySQL 8（`localhost:3307/todoapp2`）です。
+2. `todos` テーブルがあるDBに [user-management.sql](src/main/resources/db/user-management.sql) を一度実行します。既存のToDoは所有者未設定のまま管理者の一覧に表示されます。新規ToDoの所有者はログイン中のユーザーです。
+3. 初回起動時に環境変数 `TODO_AUTH_INITIAL_USERNAME`、`TODO_AUTH_INITIAL_PASSWORD`、`TODO_AUTH_INITIAL_ROLE=ADMIN` を設定します。ユーザー名が登録済みなら、ロールやパスワードは上書きされません。登録後は初回登録用の環境変数を外します。
+4. `/login` からログインし、ToDo一覧の「ユーザー管理」を開きます。画面から登録したユーザーの初期ロールは USER です。ユーザーを削除すると、そのユーザーのToDoも完全に削除されます。
+
+既存のAPIやMCPを画面の外から呼び出す場合は、ユーザー名とパスワードを HTTP Basic 認証で指定します。ToDoへのアクセス範囲は画面と同じです。
+
+
+## ToDoの変更履歴と監査ログ
+
+既存のDBに [todo-transactions.sql](src/main/resources/db/todo-transactions.sql) を適用してから、新版を起動します。追加する2つのテーブルは InnoDB を使います。
+
+- `todo_history` には、ToDoの登録・更新・削除・一括削除が確定したときに、対象IDと操作を記録します。ToDoの変更と履歴は一緒に確定し、失敗時には一緒に取り消されます。導入前の履歴はさかのぼって作成しません。
+- `todo_audit_log` には、変更を試みた時点で、操作と指定されたToDoのIDがあればそのIDを記録します。監査ログは別のトランザクションで確定するため、本体が失敗しても残ります。共通の操作IDで履歴と照合できます。監査ログだけでは成功を示しません。
+- 履歴と監査ログはToDoの本文やアカウント情報を保存しません。両テーブルにToDoへの外部キーを設けず、ToDo削除後も操作を確認できます。
+
+
+## 添付ファイル
+
+既存のDBに [todo-attachments.sql](src/main/resources/db/todo-attachments.sql) を適用してから新版を起動します。ファイル本体はアプリ作業フォルダーの `uploads` に保存し、メタ情報は `todo_attachments` に保存します。バックアップにはDBとファイル保存フォルダーの両方が必要です。保存先は `TODO_ATTACHMENTS_DIRECTORY` で変更できます。
+
+既存のToDoの編集画面から「添付ファイル」を開きます。1ファイルの上限は10MBです。ToDoの所有者と管理者が操作できます。ToDoや所有ユーザーを削除すると関連する添付情報も削除され、DBで削除が確定した後にファイル本体を削除します。

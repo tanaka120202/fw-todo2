@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登録の確認</title>
+    <title th:text="#{todo.confirm.create}">登録の確認</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <main class="container">
-        <h1 class="page-title">登録の確認</h1>
-        <p class="confirm-value">やること：<span th:text="${#strings.isEmpty(todo.title) ? '（入力なし）' : todo.title}">（入力なし）</span></p>
-        <p class="confirm-value">メモ：<span th:text="${#strings.isEmpty(todo.detail) ? '（入力なし）' : todo.detail}">（入力なし）</span></p>
-        <p class="confirm-value">ジャンル：<span th:text="${#strings.isEmpty(todo.category) ? '（入力なし）' : todo.category}">（入力なし）</span></p>
-        <p class="confirm-value">優先度：<span th:text="${todo.priority == null ? '（入力なし）' : (todo.priority == 1 ? '高' : (todo.priority == 2 ? '中' : '低'))}">（入力なし）</span></p>
-        <p class="confirm-value">期限：<span th:text="${todo.dueDate == null ? '（入力なし）' : #temporals.format(todo.dueDate, 'yyyy-MM-dd')}">（入力なし）</span></p>
+        <h1 class="page-title" th:text="#{todo.confirm.create}">登録の確認</h1>
+        <p class="confirm-value"><span th:text="#{todo.title}">やること</span>：<span th:text="${#strings.isEmpty(todo.title) ? #messages.msg('value.none') : todo.title}">（入力なし）</span></p>
+        <p class="confirm-value"><span th:text="#{todo.detail}">メモ</span>：<span th:text="${#strings.isEmpty(todo.detail) ? #messages.msg('value.none') : todo.detail}">（入力なし）</span></p>
+        <p class="confirm-value"><span th:text="#{todo.category}">ジャンル</span>：<span th:text="${#strings.isEmpty(todo.category) ? #messages.msg('value.none') : (#messages.msgOrNull('category.' + todo.category) ?: todo.category)}">（入力なし）</span></p>
+        <p class="confirm-value"><span th:text="#{todo.priority}">優先度</span>：<span th:text="${todo.priority == null ? #messages.msg('value.none') : (todo.priority == 1 ? #messages.msg('priority.high') : (todo.priority == 2 ? #messages.msg('priority.medium') : #messages.msg('priority.low')))}">（入力なし）</span></p>
+        <p class="confirm-value"><span th:text="#{todo.due}">期限</span>：<span th:text="${todo.dueDate == null ? #messages.msg('value.none') : #temporals.format(todo.dueDate, 'yyyy-MM-dd')}">（入力なし）</span></p>
         <form action="/todos" th:action="@{/todos}" method="post" th:object="${todo}">
             <input type="hidden" th:field="*{title}">
             <input type="hidden" th:field="*{detail}">
@@ -21,8 +21,8 @@
             <input type="hidden" th:field="*{priority}">
             <input type="hidden" th:field="*{dueDate}">
             <div class="confirm-actions">
-                <button class="btn" type="submit">登録する</button>
-                <button class="btn sub" type="submit" formaction="/todos/new" th:formaction="@{/todos/new}">書き直す</button>
+                <button class="btn" type="submit" th:text="#{action.register}">登録する</button>
+                <button class="btn sub" type="submit" formaction="/todos/new" th:formaction="@{/todos/new}" th:text="#{action.revise}">書き直す</button>
             </div>
         </form>
     </main>

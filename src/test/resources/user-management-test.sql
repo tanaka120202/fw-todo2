@@ -1,0 +1,47 @@
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    password_hash VARCHAR(60) NOT NULL,
+    role VARCHAR(5) NOT NULL CHECK (role IN ('USER', 'ADMIN')),
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    version BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE todos (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    detail TEXT,
+    category VARCHAR(100),
+    priority INT,
+    due_date DATE,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id BIGINT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS todo_history (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    operation_id CHAR(36) NOT NULL,
+    todo_id BIGINT NOT NULL,
+    operation VARCHAR(16) NOT NULL,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS todo_audit_log (
+    operation_id CHAR(36) NOT NULL PRIMARY KEY,
+    operation VARCHAR(16) NOT NULL,
+    requested_todo_id BIGINT NULL,
+    attempted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS todo_attachments (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    todo_id BIGINT NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    storage_name CHAR(36) NOT NULL UNIQUE,
+    size_bytes BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_todo_attachments_todo FOREIGN KEY (todo_id) REFERENCES todos(id) ON DELETE CASCADE
+);

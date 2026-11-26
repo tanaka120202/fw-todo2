@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{user.edit}">ユーザー編集</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1 class="page-title" th:text="#{user.edit}">ユーザー編集</h1>
+    <p th:if="${error}" th:text="#{${error}}" role="alert"></p>
+    <p th:text="${user.username}"></p>
+    <form th:action="@{/admin/users/{id}/edit(id=${user.id})}" method="post">
+        <label class="form-label" for="role" th:text="#{user.role}">ロール</label>
+        <select class="form-input" id="role" name="role">
+            <option value="USER" th:selected="${user.role.name() == 'USER'}">USER</option>
+            <option value="ADMIN" th:selected="${user.role.name() == 'ADMIN'}">ADMIN</option>
+        </select>
+        <label><input type="checkbox" name="enabled" value="true" th:checked="${user.enabled}"> <span th:text="#{user.enabled}">有効</span></label>
+        <label class="form-label" for="password" th:text="#{user.password.new}">新しいパスワード</label>
+        <input class="form-input" id="password" name="password" type="password" autocomplete="new-password" aria-describedby="password-help">
+        <p id="password-help" th:text="#{user.password.help}">変更しない場合は空欄にしてください。</p>
+        <button class="btn" type="submit" th:text="#{action.save}">保存する</button>
+    </form>
+    <a class="link" th:href="@{/admin/users}" th:text="#{user.list.link}">ユーザー一覧へ</a>
+</main>
+</body>
+</html>

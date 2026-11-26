@@ -3,11 +3,18 @@
     "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.todoapp2.TodoMapper">
+    <sql id="ownerCondition">
+        <if test="ownerId != null">
+            AND user_id = #{ownerId}
+        </if>
+    </sql>
+
     <select id="search" resultType="com.example.todoapp2.Todo">
         SELECT id, title, detail, category, priority,
                due_date, completed, created_at, updated_at
         FROM todos
         <where>
+            <include refid="ownerCondition"/>
             <if test="keyword != null and keyword != ''">
                 AND title LIKE CONCAT('%',
                     REPLACE(REPLACE(REPLACE(#{keyword}, '!', '!!'), '%', '!%'), '_', '!_'),
@@ -15,6 +22,12 @@
             </if>
             <if test="category != null and category != ''">
                 AND category = #{category}
+            </if>
+            <if test="from != null">
+                AND due_date &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND due_date &lt;= #{to}
             </if>
         </where>
         ORDER BY due_date
@@ -28,9 +41,10 @@
         </choose>
     </select>
 
-    <insert id="insert" parameterType="com.example.todoapp2.Todo">
-        INSERT INTO todos (title, detail, category, priority, due_date)
-        VALUES (#{title}, #{detail}, #{category}, #{priority}, #{dueDate})
+    <insert id="insert" useGeneratedKeys="true" keyProperty="todo.id">
+        INSERT INTO todos (title, detail, category, priority, due_date, completed, user_id)
+        VALUES (#{todo.title}, #{todo.detail}, #{todo.category}, #{todo.priority}, #{todo.dueDate},
+                COALESCE(#{todo.completed}, FALSE), #{userId})
     </insert>
 
     <select id="findById" resultType="com.example.todoapp2.Todo">
@@ -38,23 +52,37 @@
                due_date, completed, created_at, updated_at
         FROM todos
         WHERE id = #{id}
+        <include refid="ownerCondition"/>
     </select>
 
-    <update id="update" parameterType="com.example.todoapp2.Todo">
+    <update id="update">
         UPDATE todos
-        SET title = #{title},
-            detail = #{detail},
-            category = #{category},
-            priority = #{priority},
-            due_date = #{dueDate},
-            completed = #{completed}
-        WHERE id = #{id}
+        SET title = #{todo.title},
+            detail = #{todo.detail},
+            category = #{todo.category},
+            priority = #{todo.priority},
+            due_date = #{todo.dueDate},
+            completed = #{todo.completed}
+        WHERE id = #{todo.id}
+        <include refid="ownerCondition"/>
     </update>
 
     <delete id="deleteById">
         DELETE FROM todos
         WHERE id = #{id}
+        <include refid="ownerCondition"/>
     </delete>
+
+    <select id="lockIds" resultType="java.lang.Long">
+        SELECT id FROM todos
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        <include refid="ownerCondition"/>
+        ORDER BY id
+        FOR UPDATE
+    </select>
 
     <delete id="deleteByIds">
         DELETE FROM todos
@@ -62,5 +90,6 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        <include refid="ownerCondition"/>
     </delete>
 </mapper>
